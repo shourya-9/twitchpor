@@ -1,0 +1,32 @@
+{
+  "name": "@tizenport/smarttv-twitch",
+  "version": "0.1.0",
+  "description": "Twitch client for Samsung Tizen TVs — TizenBrew module port of fgl27/smarttv-twitch",
+  "license": "GPL-3.0",
+  "packageType": "app",
+  "appName": "Twitch (smarttv-twitch)",
+  "appPath": "app/index.html",
+  "evaluateScriptOnDocumentStart": "scripts/tizenbrew-bootstrap.js",
+  "serviceFile": "service/service.js",
+  "keys": [
+    "ChannelUp",
+    "ChannelDown",
+    "MediaPlay",
+    "MediaPause",
+    "MediaPlayPause",
+    "MediaStop",
+    "MediaRewind",
+    "MediaFastForward",
+    "ColorF0Red",
+    "ColorF1Green",
+    "ColorF2Yellow",
+    "ColorF3Blue",
+    "Guide",
+    "Info"
+  ],
+  "files": [
+    "app/",
+    "scripts/",
+    "service/"
+  ]
+}
