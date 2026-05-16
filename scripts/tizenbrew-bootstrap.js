@@ -119,18 +119,36 @@
             close:           function ()    { this._warn('close'); },
             stop:            function ()    { this._warn('stop'); },
             prepare:         function ()    { this._warn('prepare'); },
-            prepareAsync:    function (cb)  { this._warn('prepareAsync'); },
+            // prepareAsync: call successCb after a short delay so the app does NOT
+            // cascade into "Stream ended".  Without a real AVPlay, video will show
+            // nothing, but the UI stays alive.  Play_onPlayer() also calls
+            // setBufferingParam() BEFORE prepareAsync, so that must exist too.
+            prepareAsync:    function (successCb, errorCb) {
+                this._warn('prepareAsync');
+                if (typeof successCb === 'function') {
+                    window.setTimeout(successCb, 100);
+                }
+            },
             play:            function ()    { this._warn('play'); },
-            pause:           function ()    { this._warn('pause'); },
-            seekTo:          function ()    { this._warn('seekTo'); },
+            pause:           function ()    {},
+            seekTo:          function ()    {},
             setListener:     function ()    {},
             setDisplayRect:  function ()    {},
             setDisplayMethod:function ()    {},
+            // setBufferingParam is called in Play_onPlayer() before prepareAsync.
+            // Without this stub it throws TypeError and aborts Play_onPlayer(),
+            // which cascades: errorCb → retry → drop quality → "Stream ended".
+            setBufferingParam: function ()  {},
+            // setSilentSubtitle is called via try/catch in Play_onPlayer(); less
+            // critical but include for completeness.
+            setSilentSubtitle: function ()  {},
             setStreamingProperty: function () {},
             getCurrentStreamInfo: function () { return []; },
             getDuration:     function ()    { return 0; },
             getCurrentTime:  function ()    { return 0; },
-            getState:        function ()    { return 'NONE'; }
+            // Return 'IDLE' so Play_isIdleOrPlaying() returns true and the
+            // watchdog considers the player running (avoids a false stall timeout).
+            getState:        function ()    { return 'IDLE'; }
         };
         console.warn('[TizenBrew] webapis.avplay stub installed — replace with real AVPlay bridge.');
     } else {

@@ -1469,11 +1469,15 @@ function Main_Set() {
         AddCode_redirect_uri = 'https://fgl27.github.io/smarttv-twitch/release/githubio/login2/twitch.html';
         Chat_token = atob(Chat_token);
 
-        // TizenBrew patch: Twitch GQL requires Device-ID header (missing = streamPlaybackAccessToken null)
-        // Using kimne78kx3ncx6brgo4mv6wki5h1ko (web-player Client-ID, already in AddCode_client_backup)
+        // TizenBrew patch: Twitch GQL requires Client-ID + X-Device-Id headers.
+        // Without X-Device-Id (NOT 'Device-ID') the endpoint returns
+        // {data:{streamPlaybackAccessToken:null}}, which triggers retries and
+        // ultimately "Stream ended / has ended" after 3 attempts.
+        // kimne78kx3ncx6brgo4mv6wki5h1ko = Twitch web-player embedded Client-ID
+        // (stored base64-encoded as AddCode_client_backup; decoded by atob() above).
         Play_Headers = [
             ['Client-ID', AddCode_client_backup],
-            ['Device-ID', Main_GqlDeviceId()]
+            ['X-Device-Id', Main_GqlDeviceId()]
         ];
 
         Main_Bearer_User_Headers = [
@@ -1488,30 +1492,17 @@ function Main_Set() {
     }
 }
 
-// TizenBrew addition: generate/persist a stable random Device-ID for GQL requests.
-
-// Twitch requires this header on streamPlaybackAccessToken since ~2023;
-
-// without it the response returns {data:{streamPlaybackAccessToken:null}} which
-
-// the app cannot parse and retries until it shows "Stream ended".
-
+// TizenBrew addition: generate/persist a stable random X-Device-Id for GQL requests.
+// Twitch requires this header (exact name: X-Device-Id) on streamPlaybackAccessToken
+// since ~2023; without it the endpoint returns {data:{streamPlaybackAccessToken:null}}
+// which the app cannot parse and retries until it shows "Stream ended".
 function Main_GqlDeviceId() {
-
     var key = 'tbrew_gql_did';
-
     var stored = localStorage.getItem(key);
-
     if (stored) return stored;
-
     var hex = '0123456789abcdef';
-
     var id = '';
-
     for (var i = 0; i < 32; i++) id += hex[Math.floor(Math.random() * 16)];
-
     localStorage.setItem(key, id);
-
     return id;
-
 }
