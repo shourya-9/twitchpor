@@ -1469,7 +1469,12 @@ function Main_Set() {
         AddCode_redirect_uri = 'https://fgl27.github.io/smarttv-twitch/release/githubio/login2/twitch.html';
         Chat_token = atob(Chat_token);
 
-        Play_Headers = [['Client-ID', Chat_token]];
+        // TizenBrew patch: Twitch GQL requires Device-ID header (missing = streamPlaybackAccessToken null)
+        // Using kimne78kx3ncx6brgo4mv6wki5h1ko (web-player Client-ID, already in AddCode_client_backup)
+        Play_Headers = [
+            ['Client-ID', AddCode_client_backup],
+            ['Device-ID', Main_GqlDeviceId()]
+        ];
 
         Main_Bearer_User_Headers = [
             [Main_clientIdHeader, AddCode_clientId],
@@ -1481,4 +1486,32 @@ function Main_Set() {
             ['Authorization', Main_Bearer + AddCode_main_token]
         ];
     }
+}
+
+// TizenBrew addition: generate/persist a stable random Device-ID for GQL requests.
+
+// Twitch requires this header on streamPlaybackAccessToken since ~2023;
+
+// without it the response returns {data:{streamPlaybackAccessToken:null}} which
+
+// the app cannot parse and retries until it shows "Stream ended".
+
+function Main_GqlDeviceId() {
+
+    var key = 'tbrew_gql_did';
+
+    var stored = localStorage.getItem(key);
+
+    if (stored) return stored;
+
+    var hex = '0123456789abcdef';
+
+    var id = '';
+
+    for (var i = 0; i < 32; i++) id += hex[Math.floor(Math.random() * 16)];
+
+    localStorage.setItem(key, id);
+
+    return id;
+
 }
